@@ -166,8 +166,7 @@ $(document).ready(function () {
 <h3>Load packages</h3>
 <p>The current document makes use of these packages:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
-<span class="kw">library</span>(dplyr)
-<span class="kw">options</span>(<span class="dt">dplyr.width =</span> <span class="ot">Inf</span>)</code></pre></div>
+<span class="kw">library</span>(dplyr)</code></pre></div>
 </div>
 <div id="load-data" class="section level3">
 <h3>Load data</h3>
@@ -1353,14 +1352,8 @@ data.file =<span class="st"> </span><span class="kw">paste</span>(<span class="d
 <hr />
 </div>
 </div>
-<div id="part-1-about-data-collection" class="section level2">
-<h2>Part 1: About Data collection</h2>
-<p>Prior to analysing the data, it is essencial that one investigates how the sample data was collected, in order to know its limitations and potential in terms of inference. Namely, we want to know if it is generalizable and if we can prove causality.</p>
-<p>The type of this study is “observational”, as oposed to “experiment”, since it consists of survey collection via telephone interviews.</p>
-<p>The telephone interviews are conducted through random sampling from adult (aged 18 years or older) US population, as mentioned in the brfss_codebook: “<i>… interviewers collect data from a randomly selected adult in a household.</i>”. Moreover it is mentioned that “<i>…, interviewers collect data from an adult who participates by using a cellular telephone and resides in a private residence or college housing.</i>”. S ince the data collected depends on voluntary response, there might be an inherent bias involved. For example, some individuals who suffer from a given desease/health condition might be more reluctant to participate in such a survey.</p>
-<p>Nonetheless, it is assumed that the sample is representative of the population at hand, given its large sample size (491775 observations) and randomness.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">num_observations =<span class="st"> </span><span class="kw">dim</span>(brfss2013)[<span class="dv">2</span>]</code></pre></div>
-<p>We can thus conclude that since this is an observational study which used random sampling, researchers can at best generalize conclusions, although not prove causality. This is due to the fact that no random assignment was used while conducting the study.</p>
+<div id="part-1-data" class="section level2">
+<h2>Part 1: Data</h2>
 <hr />
 </div>
 <div id="part-2-research-questions" class="section level2">
@@ -1374,6 +1367,8 @@ data.file =<span class="st"> </span><span class="kw">paste</span>(<span class="d
 <h2>Part 3: Exploratory data analysis</h2>
 <p>NOTE: Insert code chunks as needed by clicking on the “Insert a new code chunk” button (green button with orange arrow) above. Make sure that your code is visible in the project you submit. Delete this note when before you submit your work.</p>
 <p><strong>Research quesion 1:</strong></p>
+<p><strong>Research quesion 2:</strong></p>
+<p><strong>Research quesion 3:</strong></p>
 </div>
 
 
