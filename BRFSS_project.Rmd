@@ -90,25 +90,62 @@ We can thus conclude that since this is an observational study which used random
 
 ## Part 2: Research questions
 
-**Research quesion 1:**
+**Research quesion 1:** Regarding "Mental Illness and Stigma" and "Social Context", does the respondants' frequency of feeling of depression in the last 30 days vary according to the number of hours they work per week?
 
-**Research quesion 2:**
+- Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
+- Response variable: "misdeprd" (How Often Feel Depressed Past 30 Days); variable type: categorical ordinal with 5 levels
 
-**Research quesion 3:**
+**Research quesion 2:** Regarding "Healthy Days (Symptoms)" and "Demographics", does the respondants' energy level self-perception vary according to level of income?
 
+- Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
+- Response variable: "qlhlth2" (How Many Days Full Of Energy In Past 30 Days); variable type: numerical discrete; data type encoding in dataset: int
+
+
+**Research quesion 3:** Regarding "Social Context" and "Demographics", does the respondants' level of income vary according to the number of hours worked?
+
+- Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
+- Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
 
 * * *
 
 ## Part 3: Exploratory data analysis
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button (green button with orange arrow) above. Make sure that your code is visible
-in the project you submit. Delete this note when before you submit your work.
+**Research quesion 1:** Regarding "Mental Illness and Stigma" and "Social Context", does the respondants' frequency of feeling of depression in the last 30 days vary according to the number of hours they work per week?
 
-**Research quesion 1:**
+- Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
+- Response variable: "misdeprd" (How Often Feel Depressed Past 30 Days); variable type: categorical ordinal with 5 levels
+
+Let us start by analysing the different levels of depression assessment.
+```{r}
+table(brfss2013$misdeprd)
+plot(brfss2013$misdeprd)
+```
+
+Number of hours worked vs depression level
+```{r}
+table(brfss2013$scntlwk1,brfss2013$misdeprd)
+plot(brfss2013$misdeprd, brfss2013$scntlwk1)
+```
+
+**Research quesion 2:** Regarding "Healthy Days (Symptoms)" and "Demographics", does the respondants' energy level self-perception vary according to level of income?
+
+- Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
+- Response variable: "qlhlth2" (How Many Days Full Of Energy In Past 30 Days); variable type: numerical discrete; data type encoding in dataset: int
+
 
 ```{r}
-
+table(brfss2013$scntvot1,brfss2013$misdeprd)
+plot(brfss2013$misdeprd, brfss2013$scntvot1)
 ```
 
 
+**Research quesion 3:** Regarding "Social Context" and "Demographics", does the respondants' level of income vary according to the number of hours worked?
+
+- Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
+- Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
+
+
+```{r}
+table(brfss2013$income2,brfss2013$misdeprd)
+plot(brfss2013$misdeprd, brfss2013$income2)
+```
