@@ -57,11 +57,12 @@ The dataset contains an extensive amount of variables (330), and observations (4
 dim(brfss2013)
 ```
 
+
 To get more meta info about the dataset:
 
 ```{r summary-overview}
 str(brfss2013)
-summary(brfss2013)
+#summary(brfss2013)
 ```
 
 
@@ -90,18 +91,27 @@ We can thus conclude that since this is an observational study which used random
 
 ## Part 2: Research questions
 
+In this research, we are generally interested in finding more about how the professional level impacts people in the US.
+
 **Research quesion 1:** Regarding "Mental Illness and Stigma" and "Social Context", does the respondants' frequency of feeling of depression in the last 30 days vary according to the number of hours they work per week?
+
+In this research question, we are interested in finding out if the depression level reported by the respondats is in any way related to the number of hours worked per week.
 
 - Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
 - Response variable: "misdeprd" (How Often Feel Depressed Past 30 Days); variable type: categorical ordinal with 5 levels
 
+
 **Research quesion 2:** Regarding "Healthy Days (Symptoms)" and "Demographics", does the respondants' energy level self-perception vary according to level of income?
+
+In this research question we want to analyse if the income level is in any way related to the self perception of energy level. 
 
 - Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
 - Response variable: "qlhlth2" (How Many Days Full Of Energy In Past 30 Days); variable type: numerical discrete; data type encoding in dataset: int
 
 
 **Research quesion 3:** Regarding "Social Context" and "Demographics", does the respondants' level of income vary according to the number of hours worked?
+
+In this last research question we are interested in finding out if there is any relationship between income level and number of working hours. In other and less scientific words, does hard work pay off? 
 
 - Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
 - Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
@@ -115,28 +125,111 @@ We can thus conclude that since this is an observational study which used random
 - Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
 - Response variable: "misdeprd" (How Often Feel Depressed Past 30 Days); variable type: categorical ordinal with 5 levels
 
-Let us start by analysing the different levels of depression assessment.
-```{r}
+Let us start by analysing the different levels of depression assessment. Since the variable is categorical, we choose the plot function.
+```{r misdeprd-var-analysis}
 table(brfss2013$misdeprd)
 plot(brfss2013$misdeprd)
 ```
 
-Number of hours worked vs depression level
-```{r}
-table(brfss2013$scntlwk1,brfss2013$misdeprd)
-plot(brfss2013$misdeprd, brfss2013$scntlwk1)
+As for the number of hours worked - scntlwk1 variable - we can see that it spans up moreless between 0 and 100 hours, closely centered at 40 with 42 hours as mean - what could be already moreless expected assuming an eight (8) hours per day during five days of the week - and 40 as median.  
+
+```{r scntlwk1-var-analysis}
+summary(brfss2013$scntlwk1)
+ggplot(data = brfss2013, aes(x = scntlwk1)) +
+  geom_histogram(binwidth=5)
 ```
+
+With a boxplot we can understand that the 150 hours is an outlier, and an individual observation.
+```{r scntlwk1-var-analysis-cont}
+boxplot(brfss2013$scntlwk1)
+```
+
+We can see that it is unimodal, relatively symmetric. One would expect that with a bigger sample size this would approximate a normal distribution.
+
+Let us use a dotplot to see if we can get more useful detail on individual cases.
+
+However, a worrying fact is that there are a lot of NA's - present in both variables. 
+```{r scntlwk1-var-analysis-cont-2}
+sum(is.na(brfss2013$misdeprd))
+sum(is.na(brfss2013$scntlwk1))
+```
+This is quite limiting both in absolute - 455669 for misdeprd and  470493 for scntlwk1 - and in relative terms - approximately respectively 93% and 96%!
+
+```{r relative-number-of-na-in-scntlwk1}
+sum(is.na(brfss2013$misdeprd))/length(brfss2013$misdeprd)
+sum(is.na(brfss2013$scntlwk1))/length(brfss2013$scntlwk1)
+```
+
+Let us try to analyse a cleaner dataset, removing NAs for misdeprd and scntlwk1 variables.
+```{r}
+brfss2013_without_nas = subset(brfss2013, !is.na(misdeprd))
+brfss2013_without_nas = subset(brfss2013_without_nas, !is.na(scntlwk1))
+summary(brfss2013_without_nas$misdeprd)
+summary(brfss2013_without_nas$scntlwk1)
+```
+Please note that this reduction decreased the number of availbale observations drastically, from 491.775 to a mere 5.372 observations.
+
+
+Let us try to see how these two variables work with each other.
+We want to understand if there is any intrinsic pattern between intense labour and the level of depression. Let us plot one variable against the other.
+```{r}
+plot(brfss2013_without_nas$misdeprd, brfss2013_without_nas$scntlwk1)
+```
+It is interesting to note that moreless all depression levels have moreless the same median, the spread/range among observations within each group seems aparently to increase as the level of "depression" decreases. 
+
+However, the figures do not hint on more conclusive information.
 
 **Research quesion 2:** Regarding "Healthy Days (Symptoms)" and "Demographics", does the respondants' energy level self-perception vary according to level of income?
 
 - Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
 - Response variable: "qlhlth2" (How Many Days Full Of Energy In Past 30 Days); variable type: numerical discrete; data type encoding in dataset: int
 
+Let us start with the income level variable.
+```{r income2-var-analysis}
+summary(brfss2013$income2)
+```
 
-```{r}
-table(brfss2013$income2,brfss2013$qlhlth2)
+One interesting fact worthy of note is the fact that the income2 variable is left skewed. 
+```{r income2-var-analysis-2}
+plot(brfss2013$income2)
+```
+
+Given the fact that (unfortunetely) the majority of USA population does not earn more than 75.000$ per year, one might speculate on the reason why such skeness appears in this dataset. 
+On one hand, one might also wonder on the randomness of the sample taken or voluntary response. Let us look on the participation level, by checking number of NAs.  
+```{r income2-var-analysis-3}
+sum(is.na(brfss2013$income2))
+sum(is.na(brfss2013$income2))/length(brfss2013$income2)
+```
+We can see that this variable is indeed very "rich" in the number of responses.
+Thus and on the other hand, one might hypothesize that people might be more willing to openly share information of their income the higher the same is. 
+
+Nonetheless this analysis is out of this scope.
+
+Now let us analyse the energy level.
+```{r qlhlth2-var-analysis-3}
+summary(brfss2013$qlhlth2)
+```
+
+Once again, we see an even more alarming number of NAs, namely:
+```{r qlhlth2-nas}
+sum(is.na(brfss2013$qlhlth2)) # 491310
+sum(is.na(brfss2013$qlhlth2))/length(brfss2013$qlhlth2) # ~99%
+```
+
+Looking at it's modality, we can see that it bimodal, with a "U" shape.
+```{r qlhlth2-var-analysis}
+ggplot(data = brfss2013, aes(x = qlhlth2)) +
+  geom_histogram(binwidth = 5)
+```
+
+This might be an interesting fact, as the majority of occurences is located in extrems.
+
+Let us look at the two variables together.
+```{r income-vs-energy-level}
 plot(brfss2013$income2, brfss2013$qlhlth2)
 ```
+
+This plot appears to hint very interesting results. Even though all levels appear to have relatively similar ranges, one can see immediately that median appears to have a positive relationship with the income level. In other words, the higher the income level, the higher the energy level reported.
 
 
 **Research quesion 3:** Regarding "Social Context" and "Demographics", does the respondants' level of income vary according to the number of hours worked?
@@ -144,8 +237,10 @@ plot(brfss2013$income2, brfss2013$qlhlth2)
 - Explanatory variable: "scntlwk1" (How Many Hours Per Week Did You Work); variable type: numerical discrete; data type encoding in dataset: int
 - Response variable: "income2" (Income Level); variable type: categorical ordinal with 8 levels;
 
+Since we previously already analysed the two variables individually, let us go directly to plotting them together.
 
-```{r}
-table(brfss2013$income2,brfss2013$scntlwk1)
+```{r income2-vs-scntlwk1}
 plot(brfss2013$income2, brfss2013$scntlwk1)
 ```
+
+One might hypothesize about having a higher level of income having a wider and upper range of hours worked, although the author argues that no clear hint is given by the plot.
