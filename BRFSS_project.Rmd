@@ -134,8 +134,8 @@ plot(brfss2013$misdeprd, brfss2013$scntlwk1)
 
 
 ```{r}
-table(brfss2013$scntvot1,brfss2013$misdeprd)
-plot(brfss2013$misdeprd, brfss2013$scntvot1)
+table(brfss2013$income2,brfss2013$qlhlth2)
+plot(brfss2013$income2, brfss2013$qlhlth2)
 ```
 
 
@@ -146,6 +146,6 @@ plot(brfss2013$misdeprd, brfss2013$scntvot1)
 
 
 ```{r}
-table(brfss2013$income2,brfss2013$misdeprd)
-plot(brfss2013$misdeprd, brfss2013$income2)
+table(brfss2013$income2,brfss2013$scntlwk1)
+plot(brfss2013$income2, brfss2013$scntlwk1)
 ```
