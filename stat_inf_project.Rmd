@@ -1,0 +1,346 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Introduction
+
+### Summary
+In this document the author presents an exploratory analysis & statistical inference based on the publicly available dataset provided by General Social Survey (<a href="http://gss.norc.org/">GSS</a>).
+
+### About the General Social Survey (GSS)
+
+<a href="http://gss.norc.org/">Here</a> is a excerpt from GSS webpage: "<i>The General Social Survey - Since 1972, the General Social Survey (GSS) has provided politicians, policymakers, and scholars with a clear and unbiased perspective on what Americans think and feel about such issues as national spending priorities, crime and punishment, intergroup relations, and confidence in institutions.</i>"
+
+### About GSS dataset
+
+Generally speaking, the GSS datasets are publicly available, and can be found in <a href="http://gss.norc.org/get-the-data">here</a>.  As provided in the project description, the GSS is a survey using USA citizens, whose <i>"[...] questions cover a diverse range of issues including national spending priorities, marijuana use, crime and punishment, race relations, quality of life, confidence in institutions, and sexual behavior."</i>.
+
+Regarding the codebook, you can find it <a href="http://gss.norc.org/get-documentation">here</a>.
+
+Note that this analysis was done in the context of Duke MOOC course in Coursera (introduction inferential statistics), so the dataset was provided with some slight modifications with R in mind as mentioned: <i>"Unlike the full General Social Survey Cumulative File, we have removed missing values from the responses and created factor variables when appropriate to facilitate analysis using R."</i>
+
+#### Data Citation
+
+Smith, Tom W., Michael Hout, and Peter V. Marsden. General Social Survey, 1972-2012 [Cumulative File]. ICPSR34802-v1. Storrs, CT: Roper Center for Public Opinion Research, University of Connecticut /Ann Arbor, MI: Inter-university Consortium for Political and Social Research [distributors], 2013-09-11. doi:10.3886/ICPSR34802.v1
+
+Persistent URL: http://doi.org/10.3886/ICPSR34802.v1
+
+## Reproduceability - local setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Locally on my machine I have put the data in a folder in the same directory as this Rmd file. Thus, to reproduce this project, setwd() where this script is and run the following snippet to load the data.  
+
+```{r load-data}
+script.dir = getwd() 
+data.dir = paste(sep="/", script.dir, "data")
+data.file = paste(sep="/", data.dir, "gss.Rdata")
+load(data.file)
+```
+
+This will store in your global environment dataframe called "gss".
+
+The dataset contains a relatively extensive amount of variables (114), and observations (57061):
+
+```{r dimensions-dataset}
+dim(gss)
+```
+
+To get more meta info about the dataset:
+
+```{r structure-dataset}
+str(gss)
+```
+
+Another useful overview of the data is using the summary function. As one can see next, there is a considerable number of variables which have NA's as value
+```{r summary-dataset}
+summary(gss)
+```
+
+OK, enough "cosmetic" analysis, let us dive into our research.
+
+
+* * *
+
+## Part 1: About Data collection
+
+Prior to analysing the data, it is essencial that one investigates how the sample data was collected, in order to know its limitations and potential in terms of inference. Namely, we want to know if it is generalizable and if we can prove causality.
+
+The type of this study is "observational", as oposed to "experimental", since it consists of survey collection.
+
+As one can infer from <a href="http://gss.norc.org/For-Survey-Participants">in the section "How you were selected"</a>, researchers cluster areas which they believe represent a cross-section of the populaiton, and then random sample a given sample size from those clusters. 
+
+Moreover, the sample consists of US citizens who actually volunteerly answer to the questions in the survey. Since the data collected depends on voluntary response, there might be an inherent bias involved. For example, some individuals who suffer from a given desease/health condition might be more reluctant to participate in such a survey.
+
+Even though not so relevant for analyzing if one can make causal inference based on this study, it is important to note that interviewees do not to answer all questions for the survey to be considered complete, as mentioned <a href="http://gss.norc.org/For-Survey-Participants"> in the section "What if I do not want to answer a question?" </a>.
+
+Nonetheless, it is assumed that the sample is representative of the population at hand, given its large sample size (57061 observations) and randomness.
+
+```{r number-of-observations}
+dim(gss)[1]
+
+```
+
+#### Conclusion
+We can thus conclude that since this is an observational study which used random sampling, researchers can at best <b>generalize conclusions</b>, although <b>not prove causality</b>. This is due to the fact that no random assignment was used while conducting the study.
+
+
+* * *
+
+## Part 2: Research question
+
+In this research, we are generally interested in finding more about how someone's generation can influence its opinion regarding current controversial questions. More specifically about their opinion regarding homosexual relationships. 
+Before we properly formulate our research question, some additional steps need to be performed in order to clean the data to minimize potential effect of confounding variables. 
+
+To assure that no historical occurrences in distinct years influence our outcome, we segment our data to a single snapshot of time, namely of isolating the year of 2012 (last year present in the provided dataset).
+```{r}
+gss12 = subset(gss, year>="2012")
+n = dim(gss12)[1]
+n
+```
+
+Finally, we need to group respondats by generation according to birth year.
+
+Year born        | Age range        | Generation
+---------------- | ---------------- | ----------------
+1946 - 1964      |  66 - 48         | Baby Boomers (BB)
+1965 - 1979      |  47 - 33         | Generation X (GX)
+1980 - 1994      |  32 - 18         | Generation Y (GY)
+1995 - 2010      |  17 - 2          | Generation Z (GZ)
+
+This information was based on <a href="http://mccrindle.com.au/resources/Generations-Defined-Sociologically.pdf">this</a> table.
+
+Given the fact that the minimum age that is present in the GSS questionaire is 18 and that the age refers to the year 2012, Genaration Z must be excluded from the current study. Let us create a new variable - regular categorical with 3 levels - which categorizes respondants into their correspondent generation. 
+
+```{r}
+gss12$generation = as.factor(ifelse((gss12$age > 17) & (gss12$age < 33), "GY", ifelse((gss12$age >= 33) & (gss12$age <= 47), "GX", "BB")))
+table(gss12$generation)
+```
+
+We thus formulate our research question in the following manner:
+
+### Research Question 
+
+
+**Research quesion:** Is there a relationship between the generation to which someone belongs and their opinion regarding the topic homosexual relationships related?
+
+- Explanatory variable: "generation" (according to the table provided previously); variable type: regular categorical, 3 levels ("BB", "GX", "GY");
+- Response variable: "homosex" (Opinion about Homosexual sex relations); variable type: categorical ordinal with 4 levels ("Always Wrong", "Almst Always Wrg", "Sometimes Wrong", "ot Wrong At All")
+
+Note: the level "other" was not considered, as it has no respondant using it, and logically does not contribute to this study.
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+To recapitulate, our research question is if we can find convincing evidence that the generation which someone belongs to has an influence on homosexual relationships.
+Moreover, we filtered the "gss" dataset for the year 2012, and created a new categorical variable called "generation".  
+
+Time to start taking care of this new dataset.
+
+### NA's
+There are several approaches on can use to deal with NA's, such as imputation or simple naive removal.
+
+#### NA's "homosex" var
+Our subset contains several NA's, more precisely 735.
+```{r-na-homosex-var-a}
+summary(gss12$homosex)
+```
+Given that the "homosex"" is our response variable, the approach taken was to filter those NA's.
+```{r-na-homosex-var-b}
+gss12 = subset(gss12, is.na(homosex) ==F)
+# make sure subsetting is exactly 735 as we wanted:
+n - dim(gss12)[1] # 735 - correct, we can update our sample size
+n = dim(gss12)[1]
+summary(gss12$homosex)
+```
+
+
+#### NA's "generation" var
+There are only 5 NA's values present in our generation variable, due to respondants who refused to declare their age.
+
+```{r-na-generation-var-a}
+summary(gss12$generation)
+# confirm there was no mistake, and validate if age also has 5 NA's
+summary(gss12$age) # confirmed
+```
+
+Given their scarse level, the simpler approach was to filter them
+```{r-na-generation-var-b}
+gss12 = subset(gss12, is.na(generation) == F)
+# confirm it is equal to 5
+n - dim(gss12)[1] # correct
+n = dim(gss12)[1] # update sample size
+```
+
+### Explore generation var
+
+The first point that stands out is that there are considerably more respondants belonging to Baby Boomers generation, than to any other generation.
+```{r-explore-generation-var-a}
+summary(gss12$generation)
+```
+
+The same conclusion becomes visually very apparent in the following illustration, which counts the respondants per age, coloring by generation:
+```{r-explore-generation-var-b}
+ggplot(gss12, aes(x = age, fill = factor(generation))) +
+  geom_bar(stat='count', position='dodge') +
+  scale_x_continuous(breaks=c(1:5)) +
+  labs(x = 'Age')
+```
+
+```{r-explore-generation-var-c}
+summary(gss12$age) 
+```
+
+```{r-explore-generation-var-d}
+ggplot(gss12, aes(x=factor(generation), y=age, fill=generation)) + geom_boxplot()
+```
+
+### Explore homosex var
+
+We can see that opinions on homosexual sex are considerably polarized: in the majority of times either they consider "always wrong", or "Not wrong at all":
+```{r, explore-homosex-var-a}
+table(gss12$homosex)
+```
+
+To make our case more explicit, let us compute the percentage:
+```{r, explore-homosex-var-b}
+prop.table(table(gss12$homosex))
+```
+
+
+### Exploring variable association
+
+As previously observed, we can see that among generations the majority of values are exactly on the polarized view - in the majority of times either they consider "always wrong", or "Not wrong at all":
+```{r-explore-generation-w-homosex-vars-a}
+table(gss12$homosex, gss12$generation)
+```
+
+The mosaic plot helps already illustrate visually how the number of people answering "Always Wrong" decreases from "BB" generation to "GY", and number of people answring "not wrong at all" progressively increases from "BB" to "GY".
+```{r-explore-generation-w-homosex-vars-b}
+mosaicplot(table(gss12$generation, gss12$homosex), main='Generation opinion about homosexual sex', shade=TRUE)
+```
+
+Moreover, looking at an equivalent plotting with a boxplot, the same potential trend is also apparent.
+```{r-explore-generation-w-homosex-vars-c}
+ggplot(gss12, aes(x=factor(homosex), y=age)) + geom_boxplot()
+```
+
+The next boxplot gives more detailed insight, by comparing generation and age with opinion about homosexual sex.
+```{r-explore-generation-w-homosex-vars-d}
+ggplot(gss12, aes(x=factor(homosex), y=age, fill=generation)) + geom_boxplot()
+```
+
+* * *
+
+## Part 4: Inference
+
+Once again, we are interested in finding out if there is any evidence of a relationship between the generation someone belongs to, and their opinion on homosexual sex.
+
+To perform our statistical analysis, we formulate this question as the following hypothesis:
+<ol>
+<li> $H_0$: (There is nothing going on, and) Generation and opinion about homosexual sex are <b>independent</b> (opinion does <b>not</b> vary by generation)  </li>
+<li> $H_A$: (There is something going on, and) Generation and opinion about homosexual sex are indeed <b>dependent</b> (opinion <b>does</b> vary by generation)   </li>
+</ol>
+
+Since we are comparing two categorical variables, we use the Chi-Square independence test (for a 5% significance level). This test is suitable for this situation, since we are interested in comparing if the observed counts are statistically different from the expected counts. In this case, a large deviation between expected and observed would provide strong evidence that the alternative hypothesis is true, and that the two categorical variables are indeed dependent.
+
+The conditions to apply the Chi-Square independence test are the following:
+
+1. Independence: Sampled observations must be independent. 	
+
+‣ random sample/assignment	- condition meet, since respondants are randomly selected as previously explained
+
+‣ if sampling without replacement, n < 10% of population	- our n is defineitely smaller than 10% of the population.
+```{r-sample-size-considered}
+n
+```
+
+‣ each case only contributes to one cell in the table	- condition satisfied
+
+2. Sample size: Each particular scenario (i.e. cell) must have at least 5 expected cases - the minimum level is 7, which means condition is satisfied
+```{r-minimum-5-expected-cases-condition}
+table(gss12$homosex, gss12$generation)
+```
+Note: as previously mentioned, we are not considering the level "Other".
+
+Thus, we conclude that all conditions are satified, and we can proceed and apply Chi Square test of independence.
+
+To do so, we need to calculate the expected proportion and compare with the observed proportion. To do so, we append "exp_prob" in the beginning of 
+
+```{r-probability-calculation}
+table(gss12$homosex, gss12$generation)
+prob_always_wrong = (340 + 135 + 90)/n
+prob_almost_always_wrong = (17 + 13 +  7)/n
+prob_sometimes_wrong = (37 + 20 + 25)/n
+prob_not_wrong = (218 + 163 + 169)/n
+# confirm adds up to 100% / 1
+prob_always_wrong + prob_almost_always_wrong + prob_sometimes_wrong +prob_not_wrong
+```
+
+Lets calculate the expected proportions:
+```{r-proportions-calculation}
+table(gss12$generation)
+obs_total_bb = table(gss12$generation)[1]
+obs_total_gx = table(gss12$generation)[2]
+obs_total_gy = table(gss12$generation)[3]
+
+# BB
+exp_prob_always_wrong_bb = prob_always_wrong* obs_total_bb
+exp_prob_almost_always_wrong_bb = prob_almost_always_wrong* obs_total_bb
+exp_prob_sometimes_wrong_bb = prob_sometimes_wrong* obs_total_bb
+exp_prob_not_wrong_bb = prob_not_wrong* obs_total_bb
+# GX
+exp_prob_always_wrong_gx = prob_always_wrong* obs_total_gx
+exp_prob_almost_always_wrong_gx = prob_almost_always_wrong* obs_total_gx
+exp_prob_sometimes_wrong_gx = prob_sometimes_wrong* obs_total_gx
+exp_prob_not_wrong_gx = prob_not_wrong* obs_total_gx
+#GY
+exp_prob_always_wrong_gy = prob_always_wrong* obs_total_gy
+exp_prob_almost_always_wrong_gy = prob_almost_always_wrong* obs_total_gy
+exp_prob_sometimes_wrong_gy = prob_sometimes_wrong* obs_total_gy
+exp_prob_not_wrong_gy = prob_not_wrong* obs_total_gy
+```
+
+Appologies in advance for the super boring calculations. Please bear with me just a little longer, so that we can calculate the test statistic.
+
+```{r-chi-squared-calculation-a}
+chi_square_bb = ((340 - exp_prob_always_wrong_bb)**2)/exp_prob_always_wrong_bb + ((17 -exp_prob_almost_always_wrong_bb)**2)/exp_prob_almost_always_wrong_bb + ((37 - exp_prob_sometimes_wrong_bb)**2)/exp_prob_sometimes_wrong_bb + ((218 - exp_prob_not_wrong_bb)**2)/exp_prob_not_wrong_bb
+
+chi_square_gx = ((135 - exp_prob_always_wrong_gx)**2)/exp_prob_always_wrong_gx + ((13 -exp_prob_almost_always_wrong_gx)**2)/exp_prob_almost_always_wrong_gx + ((20 - exp_prob_sometimes_wrong_gx)**2)/exp_prob_sometimes_wrong_gx + ((163 - exp_prob_not_wrong_gx)**2)/exp_prob_not_wrong_gx
+
+chi_square_gy = ((90 - exp_prob_always_wrong_gy)**2)/exp_prob_always_wrong_gy + ((7 -exp_prob_almost_always_wrong_gy)**2)/exp_prob_almost_always_wrong_gy + ((25 - exp_prob_sometimes_wrong_gy)**2)/exp_prob_sometimes_wrong_gy + ((169 - exp_prob_not_wrong_gy)**2)/exp_prob_not_wrong_gy
+```
+
+OK, we are almost in business.
+```{r-chi-squared-calculation-b}
+chi_square = chi_square_bb + chi_square_gx + chi_square_gy
+df = (3-1)*(3-1)
+```
+
+So after all this (extremely boring) calculations, we can finally compute our test statistic for a 5% significance level:
+```{r-point-statistic-calculation}
+t_statistic = pchisq(chi_square, df=df, lower.tail = F)
+```
+We can see that 1.43812e-11 is significant smaller than 0.05. With such a small value, we reject the Null hypothesis in favour of the alternative Hypothesis. 
+In other words, would conclude that there is convincing evidence that both variables are indeed dependent. 
+
+* * *
+
+## Part 5: Conclusions
+
+As previously mentioned, due to the way this study is performed, one can at best generalize the conclusions, although <i>not</i> prove causality. So, the fact that our test statistic favours the alternative hypothesis means that we can at best infer that the two variables are indeed related, although we can <b>not</b> conclude that the generation to which someone belongs is the reason because of which one has a given opinion about homosexual sex.
