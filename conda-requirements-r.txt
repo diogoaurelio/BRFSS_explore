@@ -1,0 +1,5 @@
+r-essentials
+r-irkernel 
+jupyter 
+r-ggplot2 
+r-dplyr
